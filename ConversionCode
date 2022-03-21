@@ -1,0 +1,81 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.*;
+import java.sql.*;
+
+
+public class BlobConversion {
+    public static void main(String[] args) throws IOException, SQLException {
+
+
+        Connection myConn = null;
+        Statement myStmt = null;
+        ResultSet myRs = null;
+
+        InputStream input = null;
+        FileOutputStream output = null;
+        try {
+            // 1. Get a connection to database
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            myConn = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/BookmarkTestFinal?enabledTLSProtocols=TLSv1.2", "root", "2601");
+
+            // 2. Execute statement
+            myStmt = myConn.createStatement();
+            String sql = "select * from MTRAINING_MODULE_BOOKMARK";
+            String query = "update MTRAINING_MODULE_BOOKMARK set ProgressString = (?) where id =(?)";
+            PreparedStatement pst = myConn.prepareStatement(query);
+            myRs = myStmt.executeQuery(sql);
+
+                ObjectMapper mapper = new ObjectMapper();
+                String json;
+
+                while(myRs.next()) {
+                    byte[] st = (byte[]) myRs.getObject(6);
+                    if (st == null){
+                        json = "{}";
+                    }else {
+
+                        ByteArrayInputStream baip = new ByteArrayInputStream(st);
+                        ObjectInputStream ois = new ObjectInputStream(baip);
+                        json = mapper.writeValueAsString(ois.readObject());
+                    }
+
+                    long id = myRs.getInt(1);
+                    pst.setString(1,json);
+                    pst.setLong(2, id);
+                    pst.executeUpdate();
+                    System.out.println(json);
+                    }
+                System.out.println("Reading progress from database...");
+                System.out.println(sql);
+
+
+                System.out.println("\nCompleted successfully!");
+                pst.close();
+
+        } catch (Exception exc) {
+            exc.printStackTrace();
+        } finally {
+            if (input != null) {
+                input.close();
+            }
+
+            close(myConn, myStmt);
+        }
+    }
+
+    private static void close(Connection myConn, Statement myStmt)
+            throws SQLException {
+
+        if (myStmt != null) {
+            myStmt.close();
+        }
+
+        if (myConn != null) {
+            myConn.close();
+        }
+    }
+}
+
+
