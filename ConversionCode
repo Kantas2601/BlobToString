@@ -18,7 +18,7 @@ public class BlobConversion {
             // 1. Get a connection to database
             Class.forName("com.mysql.cj.jdbc.Driver");
             myConn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/BookmarkTestFinal?enabledTLSProtocols=TLSv1.2", "root", "2601");
+                    "jdbc:mysql://localhost:3306/BookmarkTestFinal?enabledTLSProtocols=TLSv1.2", "root", "root");
 
             // 2. Execute statement
             myStmt = myConn.createStatement();
